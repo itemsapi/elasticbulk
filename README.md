@@ -33,7 +33,7 @@ elasticbulk.import(data, {
 
 The `movies.json` is a comma delimited json file.
 
-```json
+```js
 var stream = fs.createReadStream('./movies.json')
 .pipe(JSONStream.parse())
 
@@ -49,7 +49,7 @@ elasticbulk.import(stream, {
 
 ## Add data to Elasticsearch from PostgreSQL stream
 
-```json
+```js
 const Promise = require('bluebird');
 const through2 = require('through2')
 const db = require('knex')
@@ -72,7 +72,7 @@ elasticbulk.import(stream, {
 
 ## Configuration
 
-```json
+```js
 elasticbulk.import(data, {
   index: 'movies',
   // optional
