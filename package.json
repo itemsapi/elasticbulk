@@ -1,8 +1,8 @@
 {
   "name": "elasticbulk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Add data in bulk to elasticsearch. It supports data streaming from PostgreSQL or Filesystem",
-  "main": "index.js",
+  "main": "lib.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
