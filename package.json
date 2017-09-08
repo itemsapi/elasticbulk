@@ -1,7 +1,7 @@
 {
   "name": "elasticbulk",
-  "version": "1.0.1",
-  "description": "Add data in bulk to elasticsearch. It supports data streaming from PostgreSQL or Filesystem",
+  "version": "1.0.2",
+  "description": "Add data in bulk to elasticsearch. It supports data streaming from PostgreSQL or filesystem",
   "main": "lib.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,5 +14,8 @@
     "elasticsearch": "^13.3.1",
     "is-stream": "^1.1.0",
     "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "expect": "^21.0.0"
   }
 }

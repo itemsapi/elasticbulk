@@ -1,7 +1,6 @@
 # Elastic Bulk
 
-Add data in bulk to elasticsearch. It supports data streaming from PostgreSQL or Filesystem
-
+Add data in bulk to elasticsearch. It supports data streaming from PostgreSQL, MSSQL, MySQL, MariaDB, SQLite3 and filesystem
 
 ## Start
 
@@ -78,7 +77,7 @@ elasticbulk.import(data, {
   // optional
   type: 'movies',
   // batch size 
-  limit: 500,
+  chunk_size: 500,
   host: 'localhost:9200',
 }, {
   // mapping
@@ -89,4 +88,11 @@ elasticbulk.import(data, {
 .then(function(res) {
   console.log(res);
 })
+```
+
+## Tests
+
+```bash
+# It tests importing with your ES version. Don't tests on production environment
+ES_URL=http://localhost:9200 mocha tests/indexSpec.js -t 100000
 ```

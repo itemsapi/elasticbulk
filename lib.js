@@ -83,14 +83,17 @@ module.exports.addItemsStream = function(stream, options) {
 
   return new Promise(function(resolve, reject) {
     var counter = 0;
+    var global_counter = 0;
     var items = [];
-    var counter_limit = options.limit || 100
+    var counter_limit = options.chunk_size || options.limit || 100
     var concurrency = 1
     var added = 1
 
     stream.on('data', function (item) {
 
-      //console.log(item);
+      ++counter
+      items.push(item)
+
       if (counter >= counter_limit) {
         stream.pause();
 
@@ -102,18 +105,22 @@ module.exports.addItemsStream = function(stream, options) {
           added++
           stream.resume()
         })
-      } else {
-        ++counter
-        items.push(item)
       }
     })
     .on('end', function (data) {
+
+      if (!items.length) {
+        return resolve()
+      }
+
       module.exports.addBulkItems(items, options)
       .then(function(res) {
+        console.log('Last ' + added + ' series added!');
         return resolve()
       })
     })
     .on('close', function (data) {
+      return resolve()
     })
     .on('error', function (err) {
       return reject(err)
@@ -125,7 +132,7 @@ module.exports.addBulkItems = function(items, options, schema) {
 
   var body = [];
   for (var i = 0 ; i < items.length ; ++i) {
-    var o = { create: { _id: items[i] ? items[i]._id : undefined } };
+    var o = { index: { _id: items[i] ? items[i]._id : undefined } };
     body.push(o);
     body.push(items[i]);
   }
@@ -133,8 +140,8 @@ module.exports.addBulkItems = function(items, options, schema) {
   return elastic.bulk({
     index: options.index,
     type: options.type,
-    refresh: options.refresh || false,
-    consistency: 'one',
+    //refresh: options.refresh || false,
+    //consistency: 'one',
     body: body
   });
 }
