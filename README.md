@@ -1,6 +1,6 @@
 # Elastic Bulk
 
-Add data in bulk to elasticsearch. It supports data streaming from PostgreSQL, MSSQL, MySQL, MariaDB, SQLite3 and filesystem
+Add data in bulk to ElasticSearch. It supports data streaming from PostgreSQL, MSSQL, MySQL, MariaDB, SQLite3, Filesystem and CSV
 
 ## Start
 
@@ -15,13 +15,14 @@ const elasticbulk = require('elasticbulk');
 ## Add JSON data to Elasticsearch
 
 ```js
-// some data
+const elasticbulk = require('elasticbulk');
+// some array data
 var data = [];
 
 elasticbulk.import(data, {
   index: 'movies',
   type: 'movies',
-  host: 'localhost:9200'
+  host: 'http://localhost:9200'
 })
 .then(function(res) {
   console.log(res);
@@ -33,25 +34,55 @@ elasticbulk.import(data, {
 The `movies.json` is a comma delimited json file.
 
 ```js
-var stream = fs.createReadStream('./movies.json')
+const elasticbulk = require('elasticbulk');
+const stream = fs.createReadStream('./movies.json')
 .pipe(JSONStream.parse())
 
 elasticbulk.import(stream, {
   index: 'movies',
   type: 'movies',
-  host: 'localhost:9200',
+  host: 'http://localhost:9200',
 })
 .then(function(res) {
   console.log(res);
 })
 ```
 
-## Add data to Elasticsearch from PostgreSQL stream
+## Add data to Elasticsearch from CSV
+
+You can also use ElasticBulk for importing data from CSV. It was tested for millions of records
+
+```js
+const fs = require('fs');
+const csv = require('fast-csv');
+const elasticbulk = require('elasticbulk');
+
+var stream = fs.createReadStream('questions.csv')
+.pipe(csv({
+  headers: true
+}))
+.transform(function(data){
+  // you can transform your data here
+  return data;
+})
+
+elasticbulk.import(stream, {
+  index: 'questions',
+  type: 'questions',
+  host: 'http://localhost:9200'
+})
+.then(function(res) {
+  console.log(res);
+})
+```
+
+## Add data to Elasticsearch from PostgreSQL
 
 ```js
 const Promise = require('bluebird');
-const through2 = require('through2')
-const db = require('knex')
+const through2 = require('through2');
+const db = require('knex');
+const elasticbulk = require('elasticbulk');
 
 var stream = db.select('*').from('movies')
 .stream()
