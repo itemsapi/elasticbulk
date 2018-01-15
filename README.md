@@ -100,6 +100,46 @@ elasticbulk.import(stream, {
 })
 ```
 
+```js
+const elasticbulk = require('.elasticbulk');
+const mongoose = require('mongoose');
+const Promise = require('bluebird');
+mongoose.connect('mongodb://localhost/your_database_name', {
+  useMongoClient: true
+});
+
+mongoose.Promise = Promise;
+
+var schema = new mongoose.Schema({
+  title: String,
+  categories: Array
+});
+
+var Page = mongoose.model('Page', schema, 'your_collection_name');
+
+// stream query 
+var stream = Page.find({
+}, {title: 1, _id: 0, categories: 1}).limit(1500000).skip(0).batchSize(500).stream();
+
+elasticbulk.import(stream, {
+  index: 'my_index_name',
+  type: 'my_type_name',
+  host: 'localhost:9200',
+}, {
+  title: {
+    type: 'string'
+  },
+  categories: {
+    type: 'string',
+    index: 'not_analyzed'
+  }
+})
+.then(function(res) {
+  console.log('Importing finished');
+})
+```
+
+
 ## Configuration
 
 ```js
