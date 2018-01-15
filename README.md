@@ -100,6 +100,8 @@ elasticbulk.import(stream, {
 })
 ```
 
+## Add data to Elasticsearch from MongoDB
+
 ```js
 const elasticbulk = require('.elasticbulk');
 const mongoose = require('mongoose');
@@ -110,12 +112,10 @@ mongoose.connect('mongodb://localhost/your_database_name', {
 
 mongoose.Promise = Promise;
 
-var schema = new mongoose.Schema({
+var Page = mongoose.model('Page', new mongoose.Schema({
   title: String,
   categories: Array
-});
-
-var Page = mongoose.model('Page', schema, 'your_collection_name');
+}), 'your_collection_name');
 
 // stream query 
 var stream = Page.find({
