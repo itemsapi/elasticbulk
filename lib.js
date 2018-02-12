@@ -1,7 +1,5 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
-const JSONStream = require('JSONStream')
-const fs = Promise.promisifyAll(require('fs'));
 const isStream = require('is-stream');
 const elasticsearch = require('elasticsearch');
 
@@ -22,6 +20,10 @@ module.exports.import = function(data, options, schema) {
 
   if (!options.index) {
     return Promise.reject('Please provide index name')
+  }
+
+  if (isStream(data)) {
+    data.pause();
   }
 
   elastic = new elasticsearch.Client({
@@ -46,18 +48,6 @@ module.exports.import = function(data, options, schema) {
           }
         }
       })
-      return elastic.indices.putMapping({
-        index: options.index,
-        type: options.type,
-        ignoreUnavailable: true,
-        body: mapping
-      })
-      /*return elastic.indices.putMapping({
-        index: options.index,
-        type: options.type,
-        ignoreUnavailable: true,
-        body: mapping
-      })*/
     }
   })
   .then(function(res) {
@@ -80,6 +70,7 @@ module.exports.import = function(data, options, schema) {
  * import data by stream (file, json, psql, etc)
  */
 module.exports.addItemsStream = function(stream, options) {
+
 
   return new Promise(function(resolve, reject) {
     var counter = 0;
@@ -107,7 +98,8 @@ module.exports.addItemsStream = function(stream, options) {
         })
       }
     })
-    .on('end', function (data) {
+
+    stream.on('end', function (data) {
 
       if (!items.length) {
         return resolve()
@@ -119,12 +111,21 @@ module.exports.addItemsStream = function(stream, options) {
         return resolve()
       })
     })
-    .on('close', function (data) {
+
+    stream.on('close', function (data) {
+      //console.log('close');
       return resolve()
     })
-    .on('error', function (err) {
+
+    stream.on('error', function (err) {
+      //console.log('error');
       return reject(err)
     })
+
+    /**
+     * it waits until creating schema is not finished
+     */
+    stream.resume();
   })
 }
 

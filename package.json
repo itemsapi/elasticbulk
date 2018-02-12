@@ -1,6 +1,6 @@
 {
   "name": "elasticbulk",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Add data in bulk to elasticsearch. It supports data streaming from PostgreSQL or filesystem",
   "main": "lib.js",
   "scripts": {
@@ -9,13 +9,14 @@
   "author": "Mateusz Rzepa",
   "license": "MIT",
   "dependencies": {
-    "JSONStream": "^1.3.1",
-    "bluebird": "^3.5.0",
+    "bluebird": "^3.5.1",
     "elasticsearch": "^13.3.1",
     "is-stream": "^1.1.0",
     "lodash": "^4.17.4"
   },
   "devDependencies": {
+    "mongoose": "^4.13.9",
+    "JSONStream": "^1.3.1",
     "expect": "^21.0.0"
   }
 }

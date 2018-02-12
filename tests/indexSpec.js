@@ -12,7 +12,6 @@ const HOST = process.env.ES_URL || 'http://localhost:9200';
 const TMP = './tmp.json';
 const TEST_LIMIT = 1000;
 
-
 const elasticsearch = require('elasticsearch');
 const elastic = new elasticsearch.Client({
   host: HOST,
@@ -21,59 +20,110 @@ const elastic = new elasticsearch.Client({
   }
 });
 
+var items = [{
+  name: 'movie1',
+  tags: ['a', 'b', 'c', 'd'],
+  actors: ['a', 'b']
+}, {
+  name: 'movie2',
+  tags: ['a', 'e', 'f'],
+  actors: ['a', 'b']
+}, {
+  name: 'movie3',
+  tags: ['a', 'c'],
+  actors: ['e']
+}]
 
 describe('test bulk import', function() {
 
-  var items = [{
-    name: 'movie1',
-    tags: ['a', 'b', 'c', 'd'],
-    actors: ['a', 'b']
-  }, {
-    name: 'movie2',
-    tags: ['a', 'e', 'f'],
-    actors: ['a', 'b']
-  }, {
-    name: 'movie3',
-    tags: ['a', 'c'],
-    actors: ['e']
-  }]
-
-  beforeEach(done => {
-
-    elastic.indices.delete({
-      index: INDEX
-    })
-    .then(function(res) {
-      done();
-    })
-    .catch(function(res) {
-      // index missing
-      done();
-    })
+  beforeEach(async function() {
+    try {
+      await elastic.indices.delete({
+        index: INDEX
+      })
+      .delay(1500)
+    } catch(err) {
+    }
   })
 
-  it('makes bulk import with array', function test(done) {
+  it('makes bulk import with file streaming and mapping', async function test() {
 
-    elasticbulk.import(items, {
+    var stream = fs.createReadStream('./tests/fixtures/list.json')
+    .pipe(JSONStream.parse())
+
+    var mapping = {
+      city: {
+        type: 'string',
+        index: 'not_analyzed'
+      },
+      tags: {
+        type: 'string',
+        index: 'not_analyzed'
+      }
+    }
+
+    await elasticbulk.import(stream, {
+      index: INDEX,
+      type: INDEX,
+      chunk_size: 1,
+      host: HOST,
+      concurrency: 1,
+    }, mapping)
+    .delay(1500)
+
+    var res = await elastic.count({
+      index: INDEX
+    })
+    assert.equal(res.count, 5);
+  });
+
+  it('makes bulk import with array and mapping', async function test() {
+
+    var mapping = {
+      city: {
+        type: 'string',
+        index: 'not_analyzed'
+      },
+      tags: {
+        type: 'string',
+        index: 'not_analyzed'
+      }
+    }
+
+    await elasticbulk.import(items, {
+      index: INDEX,
+      type: INDEX,
+      chunk_size: 100,
+      host: HOST,
+    }, mapping)
+    .delay(1500)
+
+    var res = await elastic.count({
+      index: INDEX
+    })
+
+    assert.equal(res.count, 3);
+  });
+
+
+  it('makes bulk import with array', async function test() {
+
+    await elasticbulk.import(items, {
       index: INDEX,
       type: INDEX,
       chunk_size: 100,
       host: HOST,
     })
     .delay(1500)
-    .then(function(res) {
 
-      return elastic.count({
-        index: INDEX
-      })
+    var res = await elastic.count({
+      index: INDEX
     })
-    .then(function(res) {
-      assert.equal(res.count, 3);
-      done();
-    })
+
+    assert.equal(res.count, 3);
   });
 
-  it('makes bulk import with streaming', function test(done) {
+  it('makes bulk import with streaming', async function test() {
 
     var ws = fs.createWriteStream(TMP);
     var LIMIT = 1000;
@@ -89,7 +139,7 @@ describe('test bulk import', function() {
     var stream = fs.createReadStream(TMP)
     .pipe(JSONStream.parse())
 
-    elasticbulk.import(stream, {
+    await elasticbulk.import(stream, {
       index: INDEX,
       type: INDEX,
       chunk_size: 100,
@@ -97,15 +147,31 @@ describe('test bulk import', function() {
       concurrency: 5,
     })
     .delay(1500)
-    .then(function(res) {
 
-      return elastic.count({
-        index: INDEX
-      })
+    var res = await elastic.count({
+      index: INDEX
     })
-    .then(function(res) {
-      assert.equal(res.count, TEST_LIMIT);
-      done();
-    })
+    assert.equal(res.count, TEST_LIMIT);
   });
+
+  it('makes bulk import with file streaming', async function test() {
+
+    var stream = fs.createReadStream('./tests/fixtures/list.json')
+    .pipe(JSONStream.parse())
+
+    await elasticbulk.import(stream, {
+      index: INDEX,
+      type: INDEX,
+      chunk_size: 100,
+      host: HOST,
+      concurrency: 5,
+    })
+    .delay(1500)
+
+    var res = await elastic.count({
+      index: INDEX
+    })
+    assert.equal(res.count, 5);
+  });
+
 });
