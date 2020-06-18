@@ -149,6 +149,7 @@ elasticbulk.import(data, {
   type: 'movies',
   // batch size 
   chunk_size: 500,
+  debug: true,
   host: 'localhost:9200',
 }, {
   // mapping

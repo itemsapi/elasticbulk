@@ -174,4 +174,41 @@ describe('test bulk import', function() {
     assert.equal(res.count, 5);
   });
 
+  it('makes bulk import with error handling', async function test() {
+
+    var stream = fs.createReadStream('./tests/fixtures/error.json')
+    .pipe(JSONStream.parse())
+
+    var mapping = {
+      city: {
+        type: 'string',
+        index: 'not_analyzed'
+      },
+      rating: {
+        type: 'float',
+        index: 'not_analyzed'
+      },
+      tags: {
+        type: 'string',
+        index: 'not_analyzed'
+      }
+    }
+
+    await elasticbulk.import(stream, {
+      index: INDEX,
+      type: INDEX,
+      chunk_size: 1,
+      host: HOST,
+      concurrency: 1,
+      debug: true
+    }, mapping)
+    .delay(1500)
+
+    var res = await elastic.count({
+      index: INDEX
+    })
+    //assert.equal(res.count, 2);
+    assert.equal(res.count, 1);
+  });
+
 });

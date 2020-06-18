@@ -1,10 +1,10 @@
 {
   "name": "elasticbulk",
-  "version": "1.0.3",
+  "version": "1.0.7",
   "description": "Add data in bulk to elasticsearch. It supports data streaming from PostgreSQL or filesystem",
   "main": "lib.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha -b tests/*"
   },
   "author": "Mateusz Rzepa",
   "license": "MIT",
@@ -15,8 +15,9 @@
     "lodash": "^4.17.4"
   },
   "devDependencies": {
-    "mongoose": "^4.13.9",
     "JSONStream": "^1.3.1",
-    "expect": "^21.0.0"
+    "expect": "^21.0.0",
+    "mocha": "^8.0.1",
+    "mongoose": "^4.13.9"
   }
 }

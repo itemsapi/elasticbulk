@@ -144,5 +144,11 @@ module.exports.addBulkItems = function(items, options, schema) {
     //refresh: options.refresh || false,
     //consistency: 'one',
     body: body
-  });
+  })
+  .then(v => {
+
+    if (options.debug && v.errors) {
+      console.log(JSON.stringify(v, null, 2));
+    }
+  })
 }
