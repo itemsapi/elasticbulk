@@ -29,6 +29,24 @@ elasticbulk.import(data, {
 })
 ```
 
+## Add data to ItemsAPI from JSON file
+
+The `movies.json` is a comma delimited json file.
+
+```js
+const elasticbulk = require('elasticbulk');
+const stream = fs.createReadStream('./movies.json')
+.pipe(JSONStream.parse())
+
+elasticbulk.import(stream, {
+  engine: 'itemsapi',
+  host: 'http://localhost:9200',
+})
+.then(function(res) {
+  console.log(res);
+})
+```
+
 ## Add data to Elasticsearch from JSON file
 
 The `movies.json` is a comma delimited json file.
