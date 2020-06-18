@@ -210,4 +210,5 @@ describe('test bulk import', function() {
     //assert.equal(res.count, 2);
     assert.equal(res.count, 1);
   });
+
 });

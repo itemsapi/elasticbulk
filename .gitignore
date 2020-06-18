@@ -58,3 +58,4 @@ typings/
 .env
 
 /mongo.js
+tmp.json
