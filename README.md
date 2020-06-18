@@ -34,14 +34,44 @@ elasticbulk.import(data, {
 The `movies.json` is a comma delimited json file.
 
 ```js
+
+
+
+
 const elasticbulk = require('elasticbulk');
 const stream = fs.createReadStream('./movies.json')
 .pipe(JSONStream.parse())
 
+const config = {
+  "sorting_fields": ["year", "rating", "votes", "reviews_count"],
+  "aggregations": {
+    "year": {
+      "size": 10,
+      "conjunction": true
+    },
+    "genres": {
+      "size": 10,
+      "conjunction": false
+    },
+    "tags": {
+      "size": 10,
+      "conjunction": true
+    },
+    "actors": {
+      "size": 10,
+      "conjunction": true
+    },
+    "country": {
+      "size": 10,
+      "conjunction": true
+    }
+  }
+}
+
 elasticbulk.import(stream, {
   engine: 'itemsapi',
   host: 'http://localhost:9200',
-})
+}, config)
 .then(function(res) {
   console.log(res);
 })
