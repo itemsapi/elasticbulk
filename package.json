@@ -12,7 +12,7 @@
     "bluebird": "^3.5.1",
     "elasticsearch": "^13.3.1",
     "is-stream": "^1.1.0",
-    "itemsapi": "^2.0.6",
+    "itemsapi": "^2.0.8",
     "lodash": "^4.17.15"
   },
   "devDependencies": {
