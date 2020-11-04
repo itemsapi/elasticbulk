@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 const isStream = require('is-stream');
-const ItemsAPI = require('itemsapi');
+const MeiliSearch = require('meilisearch')
 
 var client;
 
@@ -18,23 +18,31 @@ module.exports.import = function(data, options, schema) {
     return Promise.reject('Please define host name')
   }
 
+  if (!options.index_name) {
+    return Promise.reject('Please define index name')
+  }
+
   if (isStream(data)) {
     data.pause();
   }
 
-  client = new ItemsAPI({
+  client = new MeiliSearch({
     host: options.host,
-    api_key: options.api_key
+    apiKey: options.api_key
   })
 
-  index = client.getIndex(options.index_name);
+  index = null;
+  //index = client.getIndex(options.index_name);
+
 
   return Promise.resolve()
   .then(function(res) {
-
-    if (schema) {
-      return index.updateConfig(schema);
-    }
+    return client.getOrCreateIndex(options.index_name, {
+      primaryKey: 'id'
+    }).then(res => {
+      index = res;
+      return client.getIndex(options.index_name).updateSettings(schema);
+    })
   })
   .then(function(res) {
 
@@ -46,7 +54,6 @@ module.exports.import = function(data, options, schema) {
       .map(v => {
         return module.exports.addBulkItems(v, options)
       }, {
-        // itemsapi supports only 1
         concurrency: 1
       })
     }
@@ -58,7 +65,6 @@ module.exports.import = function(data, options, schema) {
  */
 module.exports.addItemsStream = function(stream, options) {
 
-
   return new Promise(function(resolve, reject) {
     var counter = 0;
     var global_counter = 0;
@@ -67,13 +73,19 @@ module.exports.addItemsStream = function(stream, options) {
     var concurrency = 1
     var added = 1
 
+    console.log('stream')
+
     stream.on('data', function (item) {
+
+
 
       ++counter
       items.push(item)
 
       if (counter >= counter_limit) {
         stream.pause();
+
+        console.log(items)
 
         return module.exports.addBulkItems(items, options)
         .then(function(res) {
@@ -92,20 +104,21 @@ module.exports.addItemsStream = function(stream, options) {
         return resolve()
       }
 
-      module.exports.addBulkItems(items, options)
+      return module.exports.addBulkItems(items, options)
       .then(function(res) {
         console.log('Last ' + added + ' series added!');
         return resolve()
       })
     })
 
-    stream.on('close', function (data) {
-      //console.log('close');
+    /*
+     stream.on('close', function (data) {
+      console.log('close');
       return resolve()
-    })
+    })*/
 
     stream.on('error', function (err) {
-      //console.log('error');
+      console.log('error');
       return reject(err)
     })
 
@@ -123,8 +136,13 @@ module.exports.addBulkItems = function(items, options, schema) {
     body.push(items[i]);
   }
 
-  return index.addItems(body)
+  //console.log(body);
+
+  return index.addDocuments(body)
   .then(v => {
+
+    console.log(v);
+    console.log('indexed');
 
     if (options.debug && v.errors) {
       console.log(JSON.stringify(v, null, 2));

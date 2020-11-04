@@ -8,6 +8,7 @@ const fs = Promise.promisifyAll(require('fs'));
 const JSONStream = require('JSONStream')
 
 const HOST = 'http://localhost:3005';
+const INDEX_NAME = 'bulk_test';
 const TMP = './tmp.json';
 const TEST_LIMIT = 1000;
 
@@ -16,7 +17,8 @@ const ItemsAPI = require('itemsapi');
 const client = new ItemsAPI({
   host: HOST
 })
-const index = client.getIndex();
+
+const index = client.getIndex(INDEX_NAME);
 
 const items = [{
   name: 'movie1',
@@ -59,6 +61,7 @@ describe('test bulk import', function() {
     await elasticbulk.import(stream, {
       chunk_size: 1000,
       engine: 'itemsapi',
+      index_name: INDEX_NAME,
       host: HOST,
     }, config)
 
@@ -71,6 +74,7 @@ describe('test bulk import', function() {
     await elasticbulk.import(items, {
       chunk_size: 100,
       engine: 'itemsapi',
+      index_name: INDEX_NAME,
       host: HOST,
     }, config)
 
@@ -97,6 +101,7 @@ describe('test bulk import', function() {
     await elasticbulk.import(stream, {
       chunk_size: 100,
       engine: 'itemsapi',
+      index_name: INDEX_NAME,
       host: HOST,
     }, config)
 

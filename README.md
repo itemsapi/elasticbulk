@@ -70,6 +70,8 @@ const config = {
 
 elasticbulk.import(stream, {
   engine: 'itemsapi',
+  // api_key: '',
+  index_name: 'movies',
   host: 'http://localhost:9200',
 }, config)
 .then(function(res) {
