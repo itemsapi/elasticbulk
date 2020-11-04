@@ -7,10 +7,8 @@ const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
 const JSONStream = require('JSONStream')
 
-//const HOST = 'https://sandbox-pool-bwysf2q-3bsbgmeayb75w.ovh-fr-2.platformsh.site';
-//const API_KEY = 'FqsohPtJRjpbmLXkDScp';
-const HOST = 'http://206.189.59.98';
-const API_KEY = 'YmQzZGM2OWQ4YjBjMWJhNTRmOGZhYjkz';
+const HOST = 'http://localhost:7700';
+const API_KEY = '';
 const INDEX_NAME = 'bulk_test';
 const TMP = './tmp.json';
 const TEST_LIMIT = 1000;
