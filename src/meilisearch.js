@@ -8,7 +8,7 @@ var client;
 /**
  * data is json array of objects or stream
  */
-module.exports.import = function(data, options, schema) {
+module.exports.import = async function(data, options, schema) {
 
   options = options || {}
   options.concurrency = options.concurrency || 1
@@ -31,19 +31,13 @@ module.exports.import = function(data, options, schema) {
     apiKey: options.api_key
   })
 
-  index = null;
-  //index = client.getIndex(options.index_name);
+  index = await client.getOrCreateIndex(options.index_name, {
+    primaryKey: options.primary_key
+  })
 
+  await client.getIndex(options.index_name).updateSettings(schema);
 
   return Promise.resolve()
-  .then(function(res) {
-    return client.getOrCreateIndex(options.index_name, {
-      primaryKey: 'id'
-    }).then(res => {
-      index = res;
-      return client.getIndex(options.index_name).updateSettings(schema);
-    })
-  })
   .then(function(res) {
 
     if (isStream(data)) {
@@ -73,8 +67,6 @@ module.exports.addItemsStream = function(stream, options) {
     var concurrency = 1
     var added = 1
 
-    console.log('stream')
-
     stream.on('data', function (item) {
 
 
@@ -84,8 +76,6 @@ module.exports.addItemsStream = function(stream, options) {
 
       if (counter >= counter_limit) {
         stream.pause();
-
-        console.log(items)
 
         return module.exports.addBulkItems(items, options)
         .then(function(res) {
@@ -141,11 +131,24 @@ module.exports.addBulkItems = function(items, options, schema) {
   return index.addDocuments(body)
   .then(v => {
 
-    console.log(v);
-    console.log('indexed');
+    //console.log(v);
+    //console.log('indexed');
+
+    return index.waitForPendingUpdate(v.updateId, { timeOutMs: options.timeout, intervalMs: options.interval })
+    .then(v => {
+      console.log('ready update')
+    })
+    .catch(v => {
+      console.log('error');
+      console.log(v);
+    })
 
     if (options.debug && v.errors) {
       console.log(JSON.stringify(v, null, 2));
     }
+  })
+  .catch(v => {
+    console.log('error');
+    console.log(v);
   })
 }

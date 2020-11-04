@@ -34,10 +34,6 @@ elasticbulk.import(data, {
 The `movies.json` is a comma delimited json file.
 
 ```js
-
-
-
-
 const elasticbulk = require('elasticbulk');
 const stream = fs.createReadStream('./movies.json')
 .pipe(JSONStream.parse())
@@ -71,6 +67,48 @@ const config = {
 elasticbulk.import(stream, {
   engine: 'itemsapi',
   // api_key: '',
+  index_name: 'movies',
+  host: 'http://localhost:9200',
+}, config)
+.then(function(res) {
+  console.log(res);
+})
+```
+
+## Add data to Meilisearch from JSON file
+
+The `movies.json` is a comma delimited json file.
+
+```js
+const elasticbulk = require('elasticbulk');
+const stream = fs.createReadStream('./movies.json')
+.pipe(JSONStream.parse())
+
+const config = {
+  rankingRules: [
+    'typo',
+  ],
+  distinctAttribute: 'id',
+  searchableAttributes: [
+    'name'
+  ],
+  displayedAttributes: [
+    'name'
+  ],
+  stopWords: [
+  ],
+  synonyms: {
+  }
+}
+
+elasticbulk.import(stream, {
+  chunk_size: 1000,
+  timeout: 6000,
+  // intervalMs for check internal indexing status
+  interval: 100,
+  primary_key: 'id',
+  engine: 'meilisearch',
+  api_key: 'API_KEY',
   index_name: 'movies',
   host: 'http://localhost:9200',
 }, config)
