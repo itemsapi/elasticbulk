@@ -48,6 +48,10 @@ const config = {
   displayedAttributes: [
     'name'
   ],
+  attributesForFaceting: [
+    'director',
+    'genres'
+  ],
   stopWords: [
   ],
   synonyms: {

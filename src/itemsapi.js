@@ -42,7 +42,7 @@ module.exports.import = function(data, options, schema) {
       return module.exports.addItemsStream(data, options)
     } else {
 
-      return Promise.all(_.chunk(data))
+      return Promise.all(_.chunk(data, options.chunk_size))
       .map(v => {
         return module.exports.addBulkItems(v, options)
       }, {

@@ -92,6 +92,10 @@ const config = {
   searchableAttributes: [
     'name'
   ],
+  attributesForFaceting: [
+    'director',
+    'genres'
+  ],
   displayedAttributes: [
     'name'
   ],

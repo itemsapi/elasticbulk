@@ -1,6 +1,6 @@
 {
   "name": "elasticbulk",
-  "version": "1.0.14",
+  "version": "1.0.17",
   "description": "Add data in bulk to ItemsAPI or Elasticsearch. It supports data streaming from PostgreSQL or filesystem",
   "main": "lib.js",
   "scripts": {
