@@ -1,9 +1,9 @@
+'use strict';
+
 const _ = require('lodash');
 const Promise = require('bluebird');
 const isStream = require('is-stream');
 const elasticsearch = require('elasticsearch');
-
-var elastic;
 
 /**
  * data is json array of objects or stream
@@ -26,7 +26,7 @@ module.exports.import = function(data, options, schema) {
     data.pause();
   }
 
-  elastic = new elasticsearch.Client({
+  var elastic = new elasticsearch.Client({
     host: options.host,
     defer: function () {
       return Promise.defer();
@@ -53,12 +53,12 @@ module.exports.import = function(data, options, schema) {
   .then(function(res) {
 
     if (isStream(data)) {
-      return module.exports.addItemsStream(data, options)
+      return module.exports.addItemsStream(elastic, data, options)
     } else {
 
       return Promise.all(_.chunk(data, options.chunk_size))
-      .map(v => {
-        return module.exports.addBulkItems(v, options)
+      .map(items => {
+        return module.exports.addBulkItems(elastic, items, options)
       }, {
         concurrency: options.concurrency
       })
@@ -69,7 +69,7 @@ module.exports.import = function(data, options, schema) {
 /**
  * import data by stream (file, json, psql, etc)
  */
-module.exports.addItemsStream = function(stream, options) {
+module.exports.addItemsStream = function(elastic, stream, options) {
 
 
   return new Promise(function(resolve, reject) {
@@ -88,7 +88,7 @@ module.exports.addItemsStream = function(stream, options) {
       if (counter >= counter_limit) {
         stream.pause();
 
-        return module.exports.addBulkItems(items, options)
+        return module.exports.addBulkItems(elastic, items, options)
         .then(function(res) {
           counter = 0;
           items = []
@@ -105,7 +105,7 @@ module.exports.addItemsStream = function(stream, options) {
         return resolve()
       }
 
-      module.exports.addBulkItems(items, options)
+      module.exports.addBulkItems(elastic, items, options)
       .then(function(res) {
         console.log('Last ' + added + ' series added!');
         return resolve()
@@ -129,7 +129,7 @@ module.exports.addItemsStream = function(stream, options) {
   })
 }
 
-module.exports.addBulkItems = function(items, options, schema) {
+module.exports.addBulkItems = function(elastic, items, options) {
 
   var body = [];
   for (var i = 0 ; i < items.length ; ++i) {
