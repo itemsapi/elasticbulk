@@ -123,6 +123,45 @@ describe('test bulk import', function() {
     assert.equal(res.count, 3);
   });
 
+
+
+
+
+  it('makes bulk import with array and null\'s', async function test() {
+
+    var null_items = [{
+      name: 'movie1',
+      tags: ['a', 'b', 'c', 'd'],
+      actors: ['a', 'b']
+    }, {
+      name: 'movie2',
+      tags: ['a', 'e', 'f'],
+      actors: ['a', 'b']
+    }, null, {
+      name: 'movie3',
+      tags: ['a', 'c'],
+      actors: ['e']
+    }, {
+      name: 'movie4',
+      tags: ['a', 'c'],
+      actors: ['e']
+    }, null, null, undefined]
+
+    await elasticbulk.import(null_items, {
+      index: INDEX,
+      type: INDEX,
+      chunk_size: 100,
+      host: HOST,
+    })
+    .delay(1500)
+
+    var res = await elastic.count({
+      index: INDEX
+    })
+
+    assert.equal(res.count, 4);
+  });
+
   it('makes bulk import with streaming', async function test() {
 
     var ws = fs.createWriteStream(TMP);
