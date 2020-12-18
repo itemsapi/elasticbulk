@@ -257,6 +257,11 @@ elasticbulk.import(data, {
 ## Tests
 
 ```bash
-# It tests importing with your ES version. Don't tests on production environment
-ES_URL=http://localhost:9200 mocha tests/indexSpec.js -t 100000
+# Test ES 1.7
+docker run -it -d  -p 9200:9200 -p 9300:9300 -v $HOME/elasticsearch1.7/data:/data -v $HOME/elasticsearch1.7/logs:/logs barnybug/elasticsearch:1.7.2
+mocha --exit -t 15000 tests/elasticitemsSpec.js
+
+# Test ES 7.x
+docker run -it -d -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+mocha --exit -t 15000 tests/elasticitems7xSpec.js
 ```
