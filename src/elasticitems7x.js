@@ -145,6 +145,7 @@ module.exports.addBulkItems = function(elastic, items, options) {
   }, doc])
 
   return elastic.bulk({
+    refresh: options.refresh === true,
     index: options.index,
     body: body
   })
