@@ -29,7 +29,16 @@ module.exports.import = function(data, options, schema) {
   var elastic = new elasticsearch.Client({
     host: options.host,
     defer: function () {
-      return Promise.defer();
+      var resolve, reject;
+      var promise = new Promise(function() {
+        resolve = arguments[0];
+        reject = arguments[1];
+      });
+      return {
+        resolve: resolve,
+        reject: reject,
+        promise: promise
+      };
     }
   });
 
@@ -128,16 +137,15 @@ module.exports.addItemsStream = function(elastic, stream, options) {
 
 module.exports.addBulkItems = function(elastic, items, options) {
 
-  var body = [];
-  for (var i = 0 ; i < items.length ; ++i) {
-    var o = { index: { _id: items[i] ? items[i]._id : undefined } };
-    body.push(o);
-    body.push(items[i]);
-  }
+  const body = items.flatMap(doc => [{
+    index: {
+      _index: options.index,
+      _id: doc.id
+    }
+  }, doc])
 
   return elastic.bulk({
     index: options.index,
-    //type: options.type,
     body: body
   })
   .then(v => {
