@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const Promise = require('bluebird');
-const isStream = require('is-stream');
+const { isStream } = require('is-stream');
 const ItemsAPI = require('itemsapi');
 
 
