@@ -6,18 +6,15 @@ const elasticbulk = require('./../lib');
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
 const JSONStream = require('JSONStream')
+const { Client } = require('@elastic/elasticsearch')
 
 const INDEX = 'bulkimport-test';
 const HOST = process.env.ES_URL || 'http://localhost:9200';
 const TMP = './tmp.json';
 const TEST_LIMIT = 1000;
 
-const elasticsearch = require('elasticsearch');
-const elastic = new elasticsearch.Client({
-  host: HOST,
-  defer: function () {
-    return Promise.defer();
-  }
+const elastic = new Client({
+  node: HOST
 });
 
 var items = [{
@@ -41,14 +38,13 @@ describe('test bulk import', function() {
       await elastic.indices.delete({
         index: INDEX
       })
-      .delay(1500)
+      await Promise.delay(1500)
     } catch(err) {
     }
   })
 
   it('makes bulk import with file streaming and mapping', async function test() {
-
-    var stream = fs.createReadStream('./tests/fixtures/list.json')
+    var stream = fs.createReadStream('./tests/fixtures/list.jsonl')
     .pipe(JSONStream.parse())
 
     var mapping = {
@@ -80,7 +76,7 @@ describe('test bulk import', function() {
       index: INDEX
     })
 
-    assert.equal(res.count, 5);
+    assert.equal(res.body.count, 5);
   });
 
   it('makes bulk import with array and mapping', async function test() {
@@ -113,7 +109,7 @@ describe('test bulk import', function() {
     var res = await elastic.count({
       index: INDEX
     })
-    assert.equal(res.count, 3);
+    assert.equal(res.body.count, 3);
   });
 
 
@@ -126,13 +122,13 @@ describe('test bulk import', function() {
       engine: 'elasticsearch7x',
       host: HOST,
     })
-    .delay(1500)
+    await Promise.delay(1500)
 
-    var res = await elastic.count({
+    const res = await elastic.count({
       index: INDEX
     })
 
-    assert.equal(res.count, 3);
+    assert.equal(res.body.count, 3);
   });
 
 
@@ -172,21 +168,24 @@ describe('test bulk import', function() {
       index: INDEX
     })
 
-    assert.equal(res.count, 4);
+    assert.equal(res.body.count, 4);
   });
 
   it('makes bulk import with streaming', async function test() {
+    this.timeout(10000);
 
     var ws = fs.createWriteStream(TMP);
     var LIMIT = 1000;
 
     for (var i = 0 ; i < TEST_LIMIT ; ++i) {
-
       ws.write(JSON.stringify({
         name: 'name',
         tags: ['tag1', 'tag2']
-      }));
+      }) + '\n');
     }
+    ws.end();
+
+    await new Promise(resolve => ws.on('finish', resolve));
 
     var stream = fs.createReadStream(TMP)
     .pipe(JSONStream.parse())
@@ -198,18 +197,22 @@ describe('test bulk import', function() {
       engine: 'elasticsearch7x',
       host: HOST,
       concurrency: 5,
+      refresh: true
     })
-    .delay(1500)
+    
+    await Promise.delay(2000)
 
     var res = await elastic.count({
-      index: INDEX
+      index: INDEX,
+      ignore_unavailable: true
     })
-    assert.equal(res.count, TEST_LIMIT);
+    
+    assert.equal(res.body.count, TEST_LIMIT);
   });
 
   it('makes bulk import with file streaming', async function test() {
 
-    var stream = fs.createReadStream('./tests/fixtures/list.json')
+    var stream = fs.createReadStream('./tests/fixtures/list.jsonl')
     .pipe(JSONStream.parse())
 
     await elasticbulk.import(stream, {
@@ -225,12 +228,12 @@ describe('test bulk import', function() {
     var res = await elastic.count({
       index: INDEX
     })
-    assert.equal(res.count, 5);
+    assert.equal(res.body.count, 5);
   });
 
   it('makes bulk import with error handling', async function test() {
 
-    var stream = fs.createReadStream('./tests/fixtures/error.json')
+    var stream = fs.createReadStream('./tests/fixtures/error.jsonl')
     .pipe(JSONStream.parse())
 
     var mapping = {

@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 const isStream = require('is-stream');
-const elasticsearch = require('elasticsearch');
+const { Client } = require('@elastic/elasticsearch');
 
 /**
  * data is json array of objects or stream
@@ -26,11 +26,8 @@ module.exports.import = function(data, options, schema) {
     data.pause();
   }
 
-  var elastic = new elasticsearch.Client({
-    host: options.host,
-    defer: function () {
-      return Promise.defer();
-    }
+  var elastic = new Client({
+    node: options.host
   });
 
   return Promise.resolve()

@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 const isStream = require('is-stream');
-const elasticsearch = require('elasticsearch');
+const { Client } = require('@elastic/elasticsearch');
 
 /**
  * data is json array of objects or stream
@@ -26,20 +26,8 @@ module.exports.import = function(data, options, schema) {
     data.pause();
   }
 
-  var elastic = new elasticsearch.Client({
-    host: options.host,
-    defer: function () {
-      var resolve, reject;
-      var promise = new Promise(function() {
-        resolve = arguments[0];
-        reject = arguments[1];
-      });
-      return {
-        resolve: resolve,
-        reject: reject,
-        promise: promise
-      };
-    }
+  var elastic = new Client({
+    node: options.host
   });
 
   return Promise.resolve()
@@ -136,11 +124,14 @@ module.exports.addItemsStream = function(elastic, stream, options) {
 }
 
 module.exports.addBulkItems = function(elastic, items, options) {
+  // Filtrujemy null/undefined przed flatMap
+  const validItems = items.filter(item => item != null);
 
-  const body = items.flatMap(doc => [{
+  const body = validItems.flatMap(doc => [{
     index: {
       _index: options.index,
-      _id: doc.id
+      // Używamy doc.id tylko jeśli istnieje
+      ...(doc.id && { _id: doc.id })
     }
   }, doc])
 
@@ -150,7 +141,6 @@ module.exports.addBulkItems = function(elastic, items, options) {
     body: body
   })
   .then(v => {
-
     if (options.debug && v.errors) {
       console.log(JSON.stringify(v, null, 2));
     }

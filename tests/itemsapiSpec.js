@@ -54,7 +54,7 @@ describe('test bulk import', function() {
 
   it('makes bulk import with file streaming and mapping', async function test() {
 
-    var stream = fs.createReadStream('./tests/fixtures/list.json')
+    var stream = fs.createReadStream('./tests/fixtures/list.jsonl')
     .pipe(JSONStream.parse())
 
 

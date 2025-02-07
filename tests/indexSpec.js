@@ -6,18 +6,15 @@ const elasticbulk = require('./../lib');
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
 const JSONStream = require('JSONStream')
+const { Client } = require('@elastic/elasticsearch')
 
 const INDEX = 'bulkimport-test';
 const HOST = process.env.ES_URL || 'http://localhost:9200';
 const TMP = './tmp.json';
 const TEST_LIMIT = 1000;
 
-const elasticsearch = require('elasticsearch');
-const elastic = new elasticsearch.Client({
-  host: HOST,
-  defer: function () {
-    return Promise.defer();
-  }
+const elastic = new Client({
+  node: HOST
 });
 
 var items = [{
@@ -48,7 +45,7 @@ describe('test bulk import', function() {
 
   it('makes bulk import with file streaming and mapping', async function test() {
 
-    var stream = fs.createReadStream('./tests/fixtures/list.json')
+    var stream = fs.createReadStream('./tests/fixtures/list.jsonl')
     .pipe(JSONStream.parse())
 
     var mapping = {
@@ -156,7 +153,7 @@ describe('test bulk import', function() {
 
   it('makes bulk import with file streaming', async function test() {
 
-    var stream = fs.createReadStream('./tests/fixtures/list.json')
+    var stream = fs.createReadStream('./tests/fixtures/list.jsonl')
     .pipe(JSONStream.parse())
 
     await elasticbulk.import(stream, {
@@ -176,7 +173,7 @@ describe('test bulk import', function() {
 
   it('makes bulk import with error handling', async function test() {
 
-    var stream = fs.createReadStream('./tests/fixtures/error.json')
+    var stream = fs.createReadStream('./tests/fixtures/error.jsonl')
     .pipe(JSONStream.parse())
 
     var mapping = {

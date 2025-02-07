@@ -12,7 +12,7 @@ describe('test streams', function() {
   it('load stream data', async function test() {
 
     var counter = 0;
-    var stream = fs.createReadStream('./tests/fixtures/list.json')
+    var stream = fs.createReadStream('./tests/fixtures/list.jsonl')
     .pipe(JSONStream.parse())
     .on('data', function (item) {
       ++counter;
@@ -27,7 +27,7 @@ describe('test streams', function() {
   it('load stream data but wait before', async function test() {
 
     var counter = 0;
-    var stream = fs.createReadStream('./tests/fixtures/list.json')
+    var stream = fs.createReadStream('./tests/fixtures/list.jsonl')
     .pipe(JSONStream.parse())
 
     stream.pause();
