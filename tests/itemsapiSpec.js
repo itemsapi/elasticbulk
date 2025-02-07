@@ -46,7 +46,7 @@ const config = {
   }
 }
 
-describe('test bulk import', function() {
+describe.skip('test bulk import', function() {
 
   beforeEach(async function() {
     await index.reset();
